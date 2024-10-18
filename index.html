@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <header>
+        <h1>weppi projekt</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#route-finder">Route Finder</a></li>
+        </ul>
+    </nav>
+    <main>
+        <section id="welcome">
+            <h2>Welcome to my website</h2>
+            <button id="close">Close</button>
+            <p>welcomm.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aspernatur fugit dolorem voluptatum enim quam,
+                tempora deserunt? Fugiat nemo inventore molestiae quia rerum mollitia culpa temporibus laudantium. Nihil
+                cum ullam vero nostrum suscipit? Fugit ipsum accusantium tempora modi atque quas deleniti aliquid
+                praesentium velit autem. Itaque perferendis nulla minus eum est animi doloremque cupiditate, mollitia
+                deserunt, quia illum ratione facilis maxime omnis quo neque! Ea fuga quaerat iure, sit commodi facilis
+                at! Quisquam optio alias amet eos deserunt quo necessitatibus laborum sed doloremque, repellendus odit
+                tempora sequi, ratione vel quibusdam neque aliquid? Officiis temporibus, fuga eum omnis reprehenderit
+                vitae placeat deleniti!</p>
+        </section>
+        <section id="featured-project">
+            <div id="article-container"></div>
+            <button id="prev">Prev</button>
+            <button id="next">Next</button>
+        </section>
+        <section id="about" class="hidden">
+            <h2>About Me</h2>
+            <article>
+                <h3>Studies</h3>
+                <p>I'm studying Information and communications technology in Oulu University of Applied Sciences (OAMK).
+                </p>
+            </article>
+        </section>
+        <section id="route-finder" class="hidden">
+            <h2>How long will it take for me to get there?</h2>
+            <form id="route-form">
+                <label for="destination">Destination :</label>
+                <input type="text" id="destination" name="destination" placeholder="Latitude and longitude">
+                <button id="get-location" type="button">Use Current Location</button>
+                <br>
+                <button id="submit" type="submit">Get Route</button>
+            </form>
+            <div id="map"></div>
+        </section>
+        <aside id="related-topics">
+            <h2>Related links</h2>
+            <ul>
+                <li><a href="https://github.com/jessekl">jessekl GitHub</a></p>
+                <li><a href="https://htmlcheatsheet.com/css/">htmlcheatsheet</a></li>
+                <li><a href="https://eloquentjavascript.net/">Eloquent JavaScript</a></li>
+                <li><a href="https://www.w3schools.com/css">w3schools CSS</a></li>
+            </ul>
+        </aside>
+    </main>
+    <footer>
+        <p>&copy; OAMK 2024</p>
+        <p>Contact: <a href="mailto:t2klje00@students.oamk.fi">t2klje00@students.oamk.fi</a></p>
+        <p>Teuvo Pakkalan katu 11, 90130 Oulu</p>
+    </footer>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
