@@ -153,6 +153,4 @@ class FeaturedProjectCarousel {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  new FeaturedProjectCarousel(document.getElementById('article-container'));
-});
+new FeaturedProjectCarousel(document.getElementById('article-container'));
