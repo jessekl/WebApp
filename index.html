@@ -6,12 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="data:,">
     <base href="/WebApp/">
+    <title>Web App Project</title>
 </head>
 
 <body>
     <header>
-        <h1>weppi projekt</h1>
+        <h1>Web App Project</h1>
     </header>
     <nav>
         <ul>
@@ -22,9 +24,11 @@
     </nav>
     <main>
         <section id="welcome">
-            <h2>Welcome to my website</h2>
-            <button id="close">Close</button>
-            <p>The website is built using HTML, CSS and JavaScript. It also uses the Leaflet library for the route finder map, OpenStreetMap (OSM) for map data, and the OSRM (Open Source Routing Machine) API for calculating routes.</p>
+            <h2>Welcome</h2>
+            <button id="hide-welcome">hide</button>
+            <p>The website is built using HTML, CSS and JavaScript. It also uses the Leaflet library for the route
+                finder map, OpenStreetMap (OSM) for map data, and the OSRM (Open Source Routing Machine) API for
+                calculating routes.</p>
         </section>
         <section id="featured-project">
             <div id="article-container"></div>
@@ -40,7 +44,7 @@
             </article>
         </section>
         <section id="route-finder" class="hidden">
-            <h2>How long will it take for me to get there?</h2>
+            <h2>How will I get there?</h2>
             <form id="route-form">
                 <label for="destination">Destination :</label>
                 <input type="text" id="destination" name="destination" placeholder="Latitude and longitude">

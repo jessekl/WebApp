@@ -57,19 +57,24 @@ routeForm.addEventListener('submit', async (e) => {
     console.error(error);
   }
 });
-// User location
-getLocation.addEventListener('click', () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(position => {
-      const start = [position.coords.latitude, position.coords.longitude];
+
+// get current location
+getLocation.addEventListener('click', async () => {
+  try {
+    if ('geolocation' in navigator) {
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      });
       destinationInput.value = `${position.coords.latitude},${position.coords.longitude}`;
-    }, error => {
-      alert('Unable to retrieve your location.');
-    });
-  } else {
-    alert('Geolocation is not supported by this browser.');
+    } else {
+      throw new Error('Geolocation is not supported by this browser.');
+    }
+  } catch (error) {
+    console.error('Unable to retrieve your location:', error);
+    alert('Unable to retrieve your location.');
   }
 });
+
 
 document.querySelectorAll('nav a').forEach(link => {
   link.addEventListener('click', function () {
@@ -87,7 +92,37 @@ document.querySelectorAll('nav a').forEach(link => {
   });
 });
 
+class Welcome {
+  constructor() {
+    this.welcomeSection = document.getElementById('welcome');
+    this.closeButton = document.getElementById('hide-welcome');
+
+    this.init();
+  }
+
+  init() {
+    this.checkSessionStorage();
+    this.addEventListeners();
+  }
+
+  checkSessionStorage() {
+    if (sessionStorage.getItem('welcomeHidden') === 'true') {
+      this.welcomeSection.classList.add('hidden');
+    }
+  }
+
+  addEventListeners() {
+    this.closeButton.addEventListener('click', () => {
+      this.welcomeSection.classList.add('hidden');
+      sessionStorage.setItem('welcomeHidden', 'true');
+    });
+  }
+}
+
+const welcome = new Welcome();
+
 class FeaturedProjectCarousel {
+
   constructor(articleContainer) {
     this.articles = articleContainer;
     this.projects = [];
@@ -100,30 +135,53 @@ class FeaturedProjectCarousel {
   }
 
   async fetchRepos() {
+
     try {
       const response = await fetch(`https://api.github.com/users/jessekl/repos`);
+      if (!response.ok) {
+        if (response.status === 429) {
+          console.error('Rate limit exceeded!');
+          alert('GitHub API rate limit exceeded. Please try again later.');
+        } else {
+          throw new Error(`Error fetching repository information: ${response.statusText}`);
+        }
+      }
       const data = await response.json();
       await Promise.all(data.map(repo => this.fetchRepoReadme(repo)));
     } catch (error) {
       console.error('Error fetching repository information:', error);
-      alert('Error fetching repository information.');
+    } finally {
+      this.updateVisibility();
     }
-    this.updateVisibility();
   }
 
   async fetchRepoReadme(repo) {
-  try {
-    if (!repo.contents_url) return;
+    try {
+      // Cache to reduce API calls mid session
+      const cachedReadme = sessionStorage.getItem(`${repo.full_name}-readme`);
+      if (!cachedReadme) {
+        console.log('Fetching README file for', repo.full_name);
+        const response = await fetch(repo.contents_url.replace('{+path}', 'README.md'));
+        const readmeData = await response.json();
+        sessionStorage.setItem(`${repo.full_name}-readme`, JSON.stringify(readmeData));
+      }
+    } catch (error) {
+      console.error(`Error fetching README file for ${repo.full_name}:`, error);
+    } finally {
+      const cachedReadme = sessionStorage.getItem(`${repo.full_name}-readme`);
+      this.addProject(repo, JSON.parse(cachedReadme));
+    }
+  }
 
-    const response = await fetch(repo.contents_url.replace('{+path}', 'README.md'));
-    const readmeData = await response.json();
+
+  addProject(repo, readmeData) {
     const markdownContent = atob(readmeData.content);
     const htmlContent = markdownContent.replace(/^# (.*)$/gm, '<h1>$1</h1>')
-                                       .replace(/^## (.*)$/gm, '<h2>$1</h2>')
-                                       .replace(/^### (.*)$/gm, '<h3>$1</h3>')
-                                       .replace(/^(.*)$/gm, '<p>$1</p>')
-                                       .replace(/```(.*?)```/gs, '<pre><code>$1</code></pre>')
-                                       .replace(/\*\*(.*?)\*\*/gs, '<strong>$1</strong>');
+      .replace(/^## (.*)$/gm, '<h2>$1</h2>')
+      .replace(/^### (.*)$/gm, '<h3>$1</h3>')
+      .replace(/^(.*)$/gm, '<p>$1</p>')
+      .replace(/```(.*?)```/gs, '<pre><code>$1</code></pre>')
+      .replace(/\*\*(.*?)\*\*/gs, '<strong>$1</strong>');
     const article = document.createElement('article');
     article.innerHTML = `
       <h2><a href="${repo.html_url}">${repo.full_name}</a></h2>
@@ -131,10 +189,7 @@ class FeaturedProjectCarousel {
     `;
     this.articles.appendChild(article);
     this.projects.push(article);
-  } catch (error) {
-    console.error(`Error fetching README file for ${repo.full_name}:`, error);
   }
-}
 
   navigateTo(direction) {
     if (this.projects.length > 0) {
