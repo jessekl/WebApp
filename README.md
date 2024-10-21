@@ -31,16 +31,16 @@ JavaScript Basics (script.js) 5/5
 4.  
     **FeaturedProjectCarousel Workflow**
     1. Fetch Repositories
-    → `fetchRepos()` → GitHub API → `data` (repo data)
+    -> `fetchRepos()` -> GitHub API -> `data` (repo data)
     2. Loop Through Repositories
-    → Check Cache: `sessionStorage.getItem('repo-readme')`
-        → If cached: Use cached data
-        → If not cached: `fetchRepoReadme()` → GitHub API → `readmeData` (object)
+    -> Check Cache: `sessionStorage.getItem('repo-readme')`
+        -> If cached: Use cached data
+        -> If not cached: `fetchRepoReadme()` -> GitHub API -> `readmeData` (object)
     3. Add Project to DOM Tree
-    → `addProject()` 
-        → Create `<article>` element
-        → Parse `readmeData.content` into HTML
-        → Append to `#article-container`
+    -> `addProject()` 
+        -> Create `<article>` element
+        -> Parse `readmeData.content` into HTML
+        -> Append to `#article-container`
 5.  Line 1+
 
 Asynchronous Operations (script.js) 5/5
