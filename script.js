@@ -132,22 +132,24 @@ routeForm.addEventListener('submit', async (e) => {
 });
 
 // get current location
-document.getElementById('get-location').addEventListener('click', async () => {
-  try {
-    if ('geolocation' in navigator) {
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
-      });
-      destinationInput.value = `${position.coords.latitude},${position.coords.longitude}`;
-    } else {
-      throw new Error('Geolocation is not supported by this browser.');
+document.addEventListener('click', async (e) => {
+  if (e.target.id === 'get-location') {
+    try {
+      if ('geolocation' in navigator) {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+        const destinationInput = document.getElementById('destination');
+        destinationInput.value = `${position.coords.latitude},${position.coords.longitude}`;
+      } else {
+        throw new Error('Geolocation is not supported by this browser.');
+      }
+    } catch (error) {
+      console.error('Unable to retrieve your location:', error);
+      alert('Unable to retrieve your location.');
     }
-  } catch (error) {
-    console.error('Unable to retrieve your location:', error);
-    alert('Unable to retrieve your location.');
   }
 });
-
 
 document.querySelectorAll('nav a').forEach(link => {
   link.addEventListener('click', function () {
