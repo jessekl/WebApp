@@ -1,9 +1,6 @@
 const routeForm = document.getElementById('route-form');
-const destinationInput = document.getElementById('destination');
-const start = [65.00849587940017, 25.494293018734233];
-const getLocation = document.getElementById('get-location');
 
-const map = L.map('map').setView(start, 13);
+const map = L.map('map').setView([65, 25.4], 10);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>',
   subdomains: ['a', 'b', 'c']
@@ -12,27 +9,100 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 class RouteManager {
   constructor() {
     this.routeLayer = null;
+    this.drivingRouteHistory = JSON.parse(localStorage.getItem('drivingRouteHistory')) || [];
+    this.addClearHistoryButton();
   }
 
-  // Need this for refreshing the route
+  
   addRoute(route) {
+    // Need this for refreshing the route
     if (this.routeLayer) {
       map.removeLayer(this.routeLayer);
     }
-    this.routeLayer = L.polyline(route, { color: 'blue' }).addTo(map);
+    this.routeLayer = L.polyline(route.route, { color: 'blue' }).addTo(map);
     map.fitBounds(this.routeLayer.getBounds());
+
+
+    this.currentRoute = {
+      time: this.formatTime(route.duration),
+    };
+
+    this.drivingRouteHistory.push(this.currentRoute);
+    localStorage.setItem('drivingRouteHistory', JSON.stringify(this.drivingRouteHistory));
+
+    this.showCurrentRoute();
+  }
+
+  showCurrentRoute() {
+    document.getElementById('route-data').innerHTML = '';
+    const tableRow = document.createElement('tr');
+    tableRow.innerHTML = `
+      <td>Route: ${this.currentRoute.time}</td>
+    `;
+    document.getElementById('route-data').appendChild(tableRow);
+  }
+
+  showDrivingRouteHistory() {
+    document.getElementById('route-data').innerHTML = '';
+
+    this.drivingRouteHistory.forEach((item, index) => {
+      const tableRow = this.createTableRow(item, index);
+      document.getElementById('route-data').appendChild(tableRow);
+    });
+  }
+
+  toggleDrivingRouteHistory() {
+    if (this.isShowingHistory) {
+      this.showCurrentRoute();
+      document.getElementById('clear-history').classList.add('hidden');
+    } else {
+      this.showDrivingRouteHistory();
+      document.getElementById('clear-history').classList.remove('hidden');
+    }
+    this.isShowingHistory = !this.isShowingHistory;
+  }
+
+  createTableRow(item, index) {
+    const tableRow = document.createElement('tr');
+    tableRow.innerHTML = `
+      <td>Route ${index + 1}: ${item.time}</td>
+    `;
+    return tableRow;
+  }
+
+  formatTime(duration) {
+    const hours = Math.floor(duration / 3600);
+    const minutes = Math.floor((duration % 3600) / 60);
+    const seconds = Math.floor(duration % 60);
+    return `${hours} hours ${minutes} minutes ${seconds} seconds`;
+  }
+
+  addClearHistoryButton() {
+    document.getElementById('clear-history').addEventListener('click', () => {
+      localStorage.removeItem('drivingRouteHistory');
+      this.drivingRouteHistory = [];
+      this.showDrivingRouteHistory();
+      document.getElementById('clear-history').classList.add('hidden');
+    });
   }
 }
 const routeManager = new RouteManager();
 
-async function fetchRouteData(destination) {
-  const startLocation = [65.00849587940017, 25.494293018734233];
-  const url = `https://router.project-osrm.org/route/v1/driving/${startLocation[1]},${startLocation[0]};${destination[1]},${destination[0]}?overview=full&geometries=geojson`;
+document.getElementById('driving-route-history').addEventListener('click', () => {
+  routeManager.toggleDrivingRouteHistory();
+});
+
+async function fetchRouteData(start, destination) {
+  const url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${destination[1]},${destination[0]}?overview=full&geometries=geojson`;
 
   try {
     const response = await fetch(url);
     const data = await response.json();
-    return data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+    const route = data.routes[0];
+    const duration = route.duration;
+    const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+
+    return { route: coordinates, duration };
   } catch (error) {
     console.error(error);
     alert('Failed to fetch route data. Please try again.');
@@ -44,6 +114,9 @@ async function fetchRouteData(destination) {
 routeForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
+  const start = [65.00849587940017, 25.494293018734233];
+  const destinationInput = document.getElementById('destination');
+
   const destination = destinationInput.value.split(',').map(Number);
   if (destination.length !== 2 || isNaN(destination[0]) || isNaN(destination[1])) {
     alert('Please enter a valid destination latitude and longitude.');
@@ -51,7 +124,7 @@ routeForm.addEventListener('submit', async (e) => {
   }
 
   try {
-    const route = await fetchRouteData(destination);
+    const route = await fetchRouteData(start, destination);
     routeManager.addRoute(route);
   } catch (error) {
     console.error(error);
@@ -59,7 +132,7 @@ routeForm.addEventListener('submit', async (e) => {
 });
 
 // get current location
-getLocation.addEventListener('click', async () => {
+document.getElementById('get-location').addEventListener('click', async () => {
   try {
     if ('geolocation' in navigator) {
       const position = await new Promise((resolve, reject) => {
@@ -209,3 +282,30 @@ class FeaturedProjectCarousel {
 }
 
 new FeaturedProjectCarousel(document.getElementById('article-container'));
+
+function updateClock(element) {
+  const time = new Date().toLocaleTimeString("fi-FI", { timeZone: "Europe/Helsinki", hour12: false });
+  element.textContent = time;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const clock = document.getElementById('clock');
+  updateClock(clock);
+  setInterval(() => updateClock(clock), 1000);
+  addHoverEvent(clock);
+});
+
+function addHoverEvent(element) {
+  let sessionStartTime = localStorage.getItem('sessionStartTime');
+  if (!sessionStartTime) {
+    sessionStartTime = Date.now();
+    localStorage.setItem('sessionStartTime', sessionStartTime);
+  }
+  element.addEventListener('mouseover', () => {
+    const sessionTime = (Date.now() - sessionStartTime) / 1000;
+    const hours = Math.floor(sessionTime / 3600);
+    const minutes = Math.floor((sessionTime % 3600) / 60);
+    const seconds = Math.floor(sessionTime % 60);
+    element.title = `Session time: ${hours}h ${minutes}m ${seconds}s`;
+  });
+}
